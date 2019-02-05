@@ -1,8 +1,7 @@
 function tr = get_trace( A )
-    [u,v] = size(A);
-    if (u == v)
+    try
        tr = trace(A);
-    else
-        error('problem');
+    catch
+       error('problem');    %כאן נקבע מה יקרה אם זה לא יצילח יענו אם המטריצה לא ריבועית, נחליט מה יקרה כאן רק שנתעסק עם ההממשק גוי
     end
 end
