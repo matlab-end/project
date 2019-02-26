@@ -22,7 +22,7 @@ function varargout = proj_gui(varargin)
 
 % Edit the above text to modify the response to help proj_gui
 
-% Last Modified by GUIDE v2.5 24-Feb-2019 12:50:39
+% Last Modified by GUIDE v2.5 26-Feb-2019 12:36:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -131,6 +131,10 @@ function OK_Callback(hObject, eventdata, handles)
 % hObject    handle to OK (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.result_b.String='';
+handles.result_a.String='';
+handles.result_b_title.String='';
+handles.result_a_title.String='';
 matrix=str2num(get(handles.matrix,'string'));
 b=str2num(get(handles.b,'string'));
 option = get(handles.operation,'Value');
@@ -148,7 +152,7 @@ switch option
         end
         mi = num2str(mi);
         ma = num2str(ma);
-        handles.result.String=['minimum:',mi, ' maximum:', ma ];
+        handles.result_a.String=['minimum:',mi, ' maximum:', ma ];
     case {4,5,6}    %mean, sum and median
         switch option
             case 4  %for all matrix
@@ -161,68 +165,101 @@ switch option
         s = num2str(s);
         mea = num2str(mea);
         med = num2str(med);
-        handles.result.String=['sum: ',s, ' mean: ', mea, ' median:', med ];
+        handles.result_a.String=['sum: ',s, ' mean: ', mea, ' median:', med ];
     case {7,8,9,10,11}  %all square matrix operations
         try
             switch option
                 case 7  %det
                     matrix_det = num2str(det(matrix));
-                    handles.result.String=['Determinant: ',matrix_det];
+                    handles.result_a.String=['Determinant: ',matrix_det];
                 case 8  %trace
                     tr = num2str(trace(matrix));
-                    handles.result.String=['Trace: ',tr];
+                    handles.result_a.String=['Trace: ',tr];
                 case 9  %char-poly
                     syms x;
                     cp = charpoly(matrix,x);
-                    handles.result.String=string(cp);
+                    handles.result_a.String=string(cp);
                 case 10 %Eigenvalues
                     e = eig(matrix);
                     str='Eigenvalues:      ';
                     for i=1:size(e,1)
                     	str=[str 'lambda ' num2str(i) ' = ' num2str(e(i)) '.   '];
                     end  
-                    handles.result.String=str;
+                    handles.result_a.String=str;
                 case 11 %diagonalizable - Not complete
                     [V,D] = eig(matrix);
                     if length(eig(matrix)) ~= length(unique(eig(matrix)))   %check if invertible (if there any same eigenvalues)
-                         handles.result.String='The matrix isnt diagonalizable ';
+                         handles.result_a.String='The matrix isnt diagonalizable ';
                     else
-%                         here we have to display the result!
-                        
-
-                         %not working
-%                         handles.result.String='V= ';
-%                         handles.result.String=num2str(V);
-%                         handles.result.String='D= ';
-%                         handles.result.String=num2str(D);
-                        %not working
-                        
-                        
-%                          handles.result.String=['V= ' num2str(V) ' D = ' num2str(D)];
+                        handles.result_a_title.String='V=';
+                        handles.result_a.String=num2str(V);
+                        handles.result_b_title.String='D=';
+                        handles.result_b.String=num2str(D);
                     end
             end
         catch   %there is an error!
             if size(matrix,1)~=size(matrix,2)   %matrix isnt a square matrix error?
-                handles.result.String='The matrix must be square matrix.';
+                handles.result_a.String='The matrix must be square matrix.';
             else %any other error
-                handles.result.String='ERROR!';
+                handles.result_a.String='ERROR!';
             end
         end
-end       
+    case 12  %row reduction
+        try
+            B=num2str(row_reduction(matrix));
+            handles.result_a.String=B;
+        catch
+            handles.result_a.String='There must be more rows then columns.';
+        end
+    case 13
+        try
+            system = [matrix b];
+            system = row_reduction(system);
+            [m,n] = size(system);
+            if system(m,1:n-1)==0
+                if system(m,n)==0
+                    handles.result_a.String='there are infinity solutions';
+                else
+                    handles.result_a.String='there is no solution.';
+                end
+            else
+                x = les_solve(system);
+%                 handles.result_a_title.String='x=';
+                handles.result_a.String=num2str(x);
+            end
+        catch
+            handles.result_a.String='ERROR!';
+        end
+    case 14
+        if(det(matrix)>10^-15)
+            handles.result_a.String=num2str(cond(matrix));
+        else
+            handles.result_a.String= 'The matrix in non invertable';
+        end
+    case 15
+        
+    case 16
+        symMatrix=(0.5*(matrix+matrix'));
+        antisymMatrix=0.5*(matrix-matrix'); 
+        handles.result_a_title.String='Symmetric= ';
+        handles.result_a.String=num2str(symMatrix);
+        handles.result_b_title.String='AntiSymmetric = ';
+        handles.result_b.String=num2str(antisymMatrix);
+end      
 
 
-function result_Callback(hObject, eventdata, handles)
-% hObject    handle to result (see GCBO)
+function result_a_Callback(hObject, eventdata, handles)
+% hObject    handle to result_a (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of result as text
-%        str2double(get(hObject,'String')) returns contents of result as a double
+% Hints: get(hObject,'String') returns contents of result_a as text
+%        str2double(get(hObject,'String')) returns contents of result_a as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function result_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to result (see GCBO)
+function result_a_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to result_a (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -251,3 +288,33 @@ function b_KeyPressFcn(hObject, eventdata, handles)
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+function result_b_Callback(hObject, eventdata, handles)
+% hObject    handle to result_b (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of result_b as text
+%        str2double(get(hObject,'String')) returns contents of result_b as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function result_b_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to result_b (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function result_a_title_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to result_a_title (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
