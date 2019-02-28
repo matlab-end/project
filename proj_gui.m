@@ -139,54 +139,70 @@ matrix=str2num(get(handles.matrix,'string'));
 b=str2num(get(handles.b,'string'));
 option = get(handles.operation,'Value');
 switch option
-    case {1,2,3}    %min and max
+    case 1  %for all matrix
+        [mi ma] = get_extremum(matrix);
+        mi = num2str(mi);
+        ma = num2str(ma);
+        handles.result_a.String=['minimum=',mi, '   maximum=', ma ];
+    case {2,3}    %min and max
         switch option
-            case 1  %for all matrix
-                [mi ma] = get_extremum(matrix);
             case 2  %only for rows
                 mi = get_lines_min(matrix);
                 ma = get_lines_max(matrix);
+                type = '	row ';
             case 3  %only for columns
                 mi = get_columns_min(matrix);
                 ma = get_columns_max(matrix);
+                type = 'column';
         end
-        mi = num2str(mi);
-        ma = num2str(ma);
-        handles.result_a.String=['minimum:',mi, ' maximum:', ma ];
-    case {4,5,6}    %mean, sum and median
+        str='';
+        for i=1:size(mi,2)
+            str=[str type num2str(i) ':' '  minimum= ' num2str(mi(i)) '     maximum= ' num2str(ma(i)) '.        '];
+        end
+        handles.result_a.String=str;
+    case 4  %for all matrix
+            [s, mea, med] = get_matrice_smm(matrix);    
+            handles.result_a.String=['sum= ',num2str(s), '    mean= ', num2str(mea), '     median=', num2str(med) ];
+    case {5,6}    %mean, sum and median
         switch option
-            case 4  %for all matrix
-                [s, mea, med] = get_matrice_smm(matrix);
             case 5  %only for rows
                 [s, mea, med] = get_lines_smm(matrix);
+                type = '	row ';
             case 6  %only for columns
                 [s, mea, med] = get_columns_smm(matrix);
+                type = 'column';
         end
-        s = num2str(s);
-        mea = num2str(mea);
-        med = num2str(med);
-        handles.result_a.String=['sum: ',s, ' mean: ', mea, ' median:', med ];
-    case {7,8,9,10,11}  %all square matrix operations
+
+        str='';
+        for i=1:size(s,2)
+            str=[str type num2str(i) ':' '  sum= ' num2str(s(i)) '     mean= ' num2str(mea(i)) '  median= ' num2str(med(i)) '.        '];
+        end
+        handles.result_a.String=str;
+    case {7,8,9,10,11,16,17,18}  %all square matrix operations
         try
             switch option
                 case 7  %det
                     matrix_det = num2str(det(matrix));
-                    handles.result_a.String=['Determinant: ',matrix_det];
+                    handles.result_a_title.String='Determinant= ';
+                    handles.result_a.String=matrix_det;
                 case 8  %trace
                     tr = num2str(trace(matrix));
-                    handles.result_a.String=['Trace: ',tr];
+                    handles.result_a_title.String='Trace= ';
+                    handles.result_a.String=tr;
                 case 9  %char-poly
                     syms x;
                     cp = charpoly(matrix,x);
+                    handles.result_a_title.String='Matrix Characteristic Polynomial:';
                     handles.result_a.String=string(cp);
                 case 10 %Eigenvalues
                     e = eig(matrix);
-                    str='Eigenvalues:      ';
+                     str='';
                     for i=1:size(e,1)
-                    	str=[str 'lambda ' num2str(i) ' = ' num2str(e(i)) '.   '];
-                    end  
+                     	str=[str 'lambda ' num2str(i) ' = ' num2str(e(i)) '.        '];
+                    end
+                    handles.result_a_title.String='Eigenvalues:';
                     handles.result_a.String=str;
-                case 11 %diagonalizable - Not complete
+                case 11 %diagonalizable
                     [V,D] = eig(matrix);
                     if length(eig(matrix)) ~= length(unique(eig(matrix)))   %check if invertible (if there any same eigenvalues)
                          handles.result_a.String='The matrix isnt diagonalizable ';
@@ -196,9 +212,25 @@ switch option
                         handles.result_b_title.String='D=';
                         handles.result_b.String=num2str(D);
                     end
+                 case 16
+                    symMatrix=0.5*(matrix+matrix');
+                    antisymMatrix=0.5*(matrix-matrix'); 
+                    handles.result_a_title.String='Symmetric= ';
+                    handles.result_a.String=num2str(symMatrix);
+                    handles.result_b_title.String='AntiSymmetric = ';
+                    handles.result_b.String=num2str(antisymMatrix);
+                case 17
+                    matrix_symmetrical(matrix);
+                    handles.result_a_title.String='Approximation to symmetric matrix:';
+                    handles.result_a.String=num2str(matrix_symmetrical(matrix));
+                case 18
+                    pow_matrix = matrix^b;
+                    handles.result_a_title.String='(matrix)^b =';
+                    handles.result_a.String=num2str(pow_matrix);
+                    
             end
         catch   %there is an error!
-            if size(matrix,1)~=size(matrix,2)   %matrix isnt a square matrix error?
+            if size(matrix,1)~=size(matrix,2)   %matrix isnt a square matrix error
                 handles.result_a.String='The matrix must be square matrix.';
             else %any other error
                 handles.result_a.String='ERROR!';
@@ -225,26 +257,24 @@ switch option
             else
                 x = les_solve(system);
 %                 handles.result_a_title.String='x=';
+                handles.result_a_title.String='x= '; 
                 handles.result_a.String=num2str(x);
             end
         catch
-            handles.result_a.String='ERROR!';
+            
+           handles.result_a_title.String='x= '; 
+           handles.result_a.String='ERROR!';
         end
     case 14
+        handles.result_a_title.String='Matrix Condition Number:';
         if(det(matrix)>10^-15)
             handles.result_a.String=num2str(cond(matrix));
         else
             handles.result_a.String= 'The matrix in non invertable';
         end
     case 15
-        
-    case 16
-        symMatrix=(0.5*(matrix+matrix'));
-        antisymMatrix=0.5*(matrix-matrix'); 
-        handles.result_a_title.String='Symmetric= ';
-        handles.result_a.String=num2str(symMatrix);
-        handles.result_b_title.String='AntiSymmetric = ';
-        handles.result_b.String=num2str(antisymMatrix);
+        handles.result_a_title.String='Matrix PseudoInverse:';
+        handles.result_a.String= num2str(pinv(matrix));
 end      
 
 
