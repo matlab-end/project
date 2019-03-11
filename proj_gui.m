@@ -143,6 +143,7 @@ switch option
         [mi ma] = get_extremum(matrix);
         mi = num2str(mi);
         ma = num2str(ma);
+        handles.result_a_title.String='min/max ';
         handles.result_a.String=['minimum=',mi, '   maximum=', ma ];
     case {2,3}    %min and max
         switch option
@@ -150,10 +151,12 @@ switch option
                 mi = get_lines_min(matrix);
                 ma = get_lines_max(matrix);
                 type = '	row ';
+                handles.result_a_title.String='min/max in a row ';
             case 3  %only for columns
                 mi = get_columns_min(matrix);
                 ma = get_columns_max(matrix);
                 type = 'column';
+                handles.result_a_title.String='min/max in a column ';
         end
         str='';
         for i=1:size(mi,2)
@@ -161,15 +164,18 @@ switch option
         end
         handles.result_a.String=str;
     case 4  %for all matrix
-            [s, mea, med] = get_matrice_smm(matrix);    
+            [s, mea, med] = get_matrice_smm(matrix);
+            handles.result_a_title.String='sum, mean and median of matrix';
             handles.result_a.String=['sum= ',num2str(s), '    mean= ', num2str(mea), '     median=', num2str(med) ];
     case {5,6}    %mean, sum and median
         switch option
             case 5  %only for rows
                 [s, mea, med] = get_lines_smm(matrix);
                 type = '	row ';
+                handles.result_a_title.String='sum, mean and median of row';
             case 6  %only for columns
                 [s, mea, med] = get_columns_smm(matrix);
+                handles.result_a_title.String='sum, mean and median column';
                 type = 'column';
         end
 
@@ -225,7 +231,7 @@ switch option
                     handles.result_a.String=num2str(matrix_symmetrical(matrix));
                 case 18
                     pow_matrix = matrix^b;
-                    handles.result_a_title.String='(matrix)^b =';
+                    handles.result_a_title.String='(matrix)^b = ';
                     handles.result_a.String=num2str(pow_matrix);
                     
             end
@@ -239,11 +245,13 @@ switch option
     case 12  %row reduction
         try
             B=num2str(row_reduction(matrix));
+            handles.result_a_title.String='gaussian elimunation';
             handles.result_a.String=B;
         catch
             handles.result_a.String='There must be more rows then columns.';
         end
     case 13
+         handles.result_a_title.String ='solution of linear equations is'; 
         try
             system = [matrix b];
             system = row_reduction(system);
@@ -257,12 +265,11 @@ switch option
             else
                 x = les_solve(system);
 %                 handles.result_a_title.String='x=';
-                handles.result_a_title.String='x= '; 
                 handles.result_a.String=num2str(x);
             end
+           
         catch
-            
-           handles.result_a_title.String='x= '; 
+              
            handles.result_a.String='ERROR!';
         end
     case 14
